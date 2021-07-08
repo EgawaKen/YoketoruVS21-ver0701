@@ -15,16 +15,24 @@ namespace YoketoruVS21
     {
         const bool isDebug = true;
 
+        const int SpeedMax = 20;
+
+         int itemCount=0;
+        int time = 0;
+
         const int PlayerMax = 1;
-        const int EnemyMax = 3;
-        const int ItemMax = 3;
+        const int EnemyMax = 5;
+        const int ItemMax = 10;
         const int ChrMax = PlayerMax + EnemyMax + ItemMax;
 
         Label[] chrs = new Label[ChrMax];
+        int[] vx = new int[ChrMax];
+        int[] vy = new int[ChrMax];
 
         const int PlayerIndex = 0;
         const int EnemyIndex = PlayerMax;
         const int ItemIndex = EnemyIndex + EnemyMax;
+        const int StartTime = 100;
 
         const string PlayerText = "(・ω・)";
         const string EnemyText = "◆";
@@ -119,12 +127,21 @@ namespace YoketoruVS21
                     startButton.Visible = false;
                     copyrightLabel.Visible = false;
                     hiLabel.Visible = false;
+                   
 
-                    for(int i = EnemyIndex; i < ChrMax; i++)
+
+
+                    for (int i = EnemyIndex; i < ChrMax; i++)
                     {
                         chrs[i].Left = rand.Next(ClientSize.Width - chrs[i].Width);
                         chrs[i].Top = rand.Next(ClientSize.Height - chrs[i].Height);
+                        vx[i] = rand.Next(-SpeedMax, SpeedMax + 1);
+                        vy[i] = rand.Next(-SpeedMax, SpeedMax + 1);
+                        chrs[i].Visible = true;
                     }
+
+                    itemCount = ItemMax;
+                    time = StartTime+1;
                     break;
 
                 case State.Gameover:
@@ -143,9 +160,66 @@ namespace YoketoruVS21
 
         void UpdateGame()
         {
+           
+            timeLabel.Text = "Time" + time;
+            time--;
+
             Point mp = PointToClient(MousePosition);
 
             // TODO: mpがプレイヤーラベルの中心になるように設定
+            for(int i=EnemyIndex;i<ChrMax;i++)
+            {
+                if (!chrs[i].Visible) continue;
+
+                chrs[i].Left += vx[i];
+                chrs[i].Top += vy[i];
+
+          
+
+                if(chrs[i].Left<0)
+                {
+                    vx[i] = Math.Abs(vx[i]);
+                }
+
+                if (chrs[i].Right > ClientSize.Width)
+                {
+                    vx[i] = -Math.Abs(vx[i]);
+                }
+
+                if (chrs[i].Top < 0)
+                {
+                    vy[i] = Math.Abs(vy[i]);
+                }
+
+                if (chrs[i].Bottom >ClientSize.Height)
+                {
+                    vy[i] = -Math.Abs(vy[i]);
+                }
+
+                if((mp.X>=chrs[i].Left)
+                    &&(mp.X < chrs[i].Right)
+                    &&(mp.Y>=chrs[i].Top)
+                    &&(mp.Y<chrs[i].Bottom))
+                {
+                    if(i<ItemIndex)
+                    {
+                        nextState = State.Gameover;
+                    }
+                    else
+                    {
+                        chrs[i].Visible = false;
+                        itemCount--;
+                        if(itemCount<=0)
+                        {
+                            nextState = State.Clear;
+                        }
+                        leftLabel.Text = "★;" + itemCount;
+
+                                            
+                    }
+                }
+
+            }
 
         }
 
